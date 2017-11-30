@@ -1,4 +1,5 @@
-# Fixed size multiplexer
+# Fixed size multiplexer [![Travis CI](https://img.shields.io/travis/nazar-pc/fixed-size-multiplexer/master.svg?label=Travis%20CI)](https://travis-ci.org/nazar-pc/fixed-size-multiplexer)
+
 A tiny library for multiplexing data chunks into blocks of fixed size and vice versa
 
 This library works in Node and in Browser environments (UMD) and is optimized for very small size.
