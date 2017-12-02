@@ -174,6 +174,9 @@
         return false;
       }
       data_length = uint_array_to_number(this._buffer.subarray(0, this._block_size_header_bytes));
+      if (!data_length) {
+        this._buffer = new Uint8Array(0);
+      }
       return data_length !== 0 && this._buffer.length >= this._block_size_header_bytes + data_length;
     }
     /**

@@ -43,10 +43,26 @@
       demux.feed(mux.get_block());
     }
     t.ok(demux.have_more_data(), 'Have more data');
-    debugger;
     data = demux.get_data();
     t.equal(Buffer.from(data).toString('hex'), data2.toString('hex'), 'Got correct data #2');
     data = demux.get_data();
     t.equal(Buffer.from(data).toString('hex'), data3.toString('hex'), 'Got correct data #3');
+  });
+  test('Alternating feed', function(t){
+    var mux, demux, data;
+    t.plan(6);
+    mux = lib.Multiplexer(max_data_length, block_size);
+    demux = lib.Demultiplexer(max_data_length, block_size);
+    data = crypto.randomBytes(32);
+    mux.feed(data);
+    t.ok(mux.have_more_blocks(), 'There are blocks #1');
+    demux.feed(mux.get_block());
+    t.ok(demux.have_more_data(), 'There are data #1');
+    t.equal(Buffer.from(demux.get_data()).toString('hex'), data.toString('hex'), 'Got correct data #1');
+    mux.feed(data);
+    t.ok(mux.have_more_blocks(), 'There are blocks #2');
+    demux.feed(mux.get_block());
+    t.ok(demux.have_more_data(), 'There are data #2');
+    t.equal(Buffer.from(demux.get_data()).toString('hex'), data.toString('hex'), 'Got correct data #2');
   });
 }).call(this);

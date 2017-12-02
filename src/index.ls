@@ -147,6 +147,8 @@ Demultiplexer:: =
 		if @_buffer.length <= @_block_size_header_bytes
 			return false
 		data_length	= uint_array_to_number(@_buffer.subarray(0, @_block_size_header_bytes))
+		if !data_length
+			@_buffer	= new Uint8Array(0)
 		data_length != 0 && @_buffer.length >= @_block_size_header_bytes + data_length
 	/**
 	 * @return {Uint8Array}
