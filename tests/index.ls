@@ -60,28 +60,31 @@ test('Basic usage', (t) !->
 )
 
 test('Alternating feed', (t) !->
-	t.plan(6)
+	t.plan(7)
 
 	mux		= lib.Multiplexer(max_data_length, block_size)
 	demux	= lib.Demultiplexer(max_data_length, block_size)
 
-	data	= crypto.randomBytes(32)
+	data1	= crypto.randomBytes(125)
+	data2	= crypto.randomBytes(124)
 
-	mux.feed(data)
+	mux.feed(data1)
 
 	t.ok(mux.have_more_blocks(), 'There are blocks #1')
 
 	demux.feed(mux.get_block())
 
 	t.ok(demux.have_more_data(), 'There are data #1')
-	t.equal(Buffer.from(demux.get_data()).toString('hex'), data.toString('hex'), 'Got correct data #1')
+	t.equal(Buffer.from(demux.get_data()).toString('hex'), data1.toString('hex'), 'Got correct data #1')
 
-	mux.feed(data)
+	mux.feed(data2)
 
 	t.ok(mux.have_more_blocks(), 'There are blocks #2')
 
 	demux.feed(mux.get_block())
 
 	t.ok(demux.have_more_data(), 'There are data #2')
-	t.equal(Buffer.from(demux.get_data()).toString('hex'), data.toString('hex'), 'Got correct data #2')
+	t.equal(Buffer.from(demux.get_data()).toString('hex'), data2.toString('hex'), 'Got correct data #2')
+
+	t.notOk(mux.have_more_blocks(), 'There are no more blocks')
 )

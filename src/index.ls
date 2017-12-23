@@ -71,6 +71,7 @@ function number_to_uint_array (number, length)
 		return new Multiplexer(max_data_length, block_size)
 
 	initialize(@, max_data_length, block_size)
+	@_empty	= true
 
 Multiplexer:: =
 	/**
@@ -82,20 +83,26 @@ Multiplexer:: =
 			..set(number_to_uint_array(data.length, @_block_size_header_bytes), @_buffer.length)
 			..set(data, @_block_size_header_bytes + @_buffer.length)
 		@_buffer	= new_buffer
+		@_empty		= false
 	/**
 	 * @return {boolean}
 	 */
 	'have_more_blocks' : ->
-		@_buffer.length > 0
+		!@_empty
 	/**
 	 * @return {!Uint8Array}
 	 */
 	'get_block' : ->
 		block	= new Uint8Array(@_block_size)
 		if @have_more_blocks()
-			to_read		= Math.min(@_block_size, @_buffer.length)
-			block.set(@_buffer.subarray(0, to_read))
-			@_buffer	= @_buffer.subarray(to_read)
+			if @_block_size > @_buffer.length
+				empty_headers_to_add	= Math.ceil((@_block_size - @_buffer.length) / @_block_size_header_bytes)
+				new_buffer				= new Uint8Array(@_buffer.length + empty_headers_to_add * @_block_size_header_bytes)
+					..set(@_buffer)
+				@_buffer				= new_buffer
+				@_empty					= true
+			block.set(@_buffer.subarray(0, @_block_size))
+			@_buffer	= @_buffer.subarray(@_block_size)
 		block
 
 Object.defineProperty(Multiplexer::, 'constructor', {enumerable: false, value: Multiplexer})
@@ -141,12 +148,15 @@ Demultiplexer:: =
 	 * @return {boolean}
 	 */
 	_have_more_data : ->
-		if @_buffer.length <= @_block_size_header_bytes
-			return false
-		data_length	= uint_array_to_number(@_buffer.subarray(0, @_block_size_header_bytes))
-		if !data_length
-			@_buffer	= new Uint8Array(0)
-		data_length != 0 && @_buffer.length >= @_block_size_header_bytes + data_length
+		loop
+			if @_buffer.length <= @_block_size_header_bytes
+				return false
+			data_length	= uint_array_to_number(@_buffer.subarray(0, @_block_size_header_bytes))
+			if !data_length
+				@_buffer	= @_buffer.subarray(@_block_size_header_bytes)
+			else
+				break
+		@_buffer.length >= @_block_size_header_bytes + data_length
 	/**
 	 * @return {Uint8Array}
 	 */

@@ -80,6 +80,7 @@
       return new Multiplexer(max_data_length, block_size);
     }
     initialize(this, max_data_length, block_size);
+    this._empty = true;
   }
   Multiplexer.prototype = {
     /**
@@ -92,23 +93,30 @@
       x$.set(number_to_uint_array(data.length, this._block_size_header_bytes), this._buffer.length);
       x$.set(data, this._block_size_header_bytes + this._buffer.length);
       this._buffer = new_buffer;
+      this._empty = false;
     }
     /**
      * @return {boolean}
      */,
     'have_more_blocks': function(){
-      return this._buffer.length > 0;
+      return !this._empty;
     }
     /**
      * @return {!Uint8Array}
      */,
     'get_block': function(){
-      var block, to_read;
+      var block, empty_headers_to_add, x$, new_buffer;
       block = new Uint8Array(this._block_size);
       if (this.have_more_blocks()) {
-        to_read = Math.min(this._block_size, this._buffer.length);
-        block.set(this._buffer.subarray(0, to_read));
-        this._buffer = this._buffer.subarray(to_read);
+        if (this._block_size > this._buffer.length) {
+          empty_headers_to_add = Math.ceil((this._block_size - this._buffer.length) / this._block_size_header_bytes);
+          x$ = new_buffer = new Uint8Array(this._buffer.length + empty_headers_to_add * this._block_size_header_bytes);
+          x$.set(this._buffer);
+          this._buffer = new_buffer;
+          this._empty = true;
+        }
+        block.set(this._buffer.subarray(0, this._block_size));
+        this._buffer = this._buffer.subarray(this._block_size);
       }
       return block;
     }
@@ -165,14 +173,18 @@
      */,
     _have_more_data: function(){
       var data_length;
-      if (this._buffer.length <= this._block_size_header_bytes) {
-        return false;
+      for (;;) {
+        if (this._buffer.length <= this._block_size_header_bytes) {
+          return false;
+        }
+        data_length = uint_array_to_number(this._buffer.subarray(0, this._block_size_header_bytes));
+        if (!data_length) {
+          this._buffer = this._buffer.subarray(this._block_size_header_bytes);
+        } else {
+          break;
+        }
       }
-      data_length = uint_array_to_number(this._buffer.subarray(0, this._block_size_header_bytes));
-      if (!data_length) {
-        this._buffer = new Uint8Array(0);
-      }
-      return data_length !== 0 && this._buffer.length >= this._block_size_header_bytes + data_length;
+      return this._buffer.length >= this._block_size_header_bytes + data_length;
     }
     /**
      * @return {Uint8Array}
