@@ -61,14 +61,9 @@
     object._max_data_length = max_data_length;
     object._block_size = block_size;
     object._block_size_header_bytes = 1;
-    if (max_data_length >= Math.pow(2, 8)) {
+    while (max_data_length >= Math.pow(2, 8)) {
       ++object._block_size_header_bytes;
-    }
-    if (max_data_length >= Math.pow(2, 16)) {
-      ++object._block_size_header_bytes;
-    }
-    if (max_data_length >= Math.pow(2, 32)) {
-      ++object._block_size_header_bytes;
+      max_data_length /= Math.pow(2, 8);
     }
     object._buffer = new Uint8Array(0);
   }
