@@ -11,7 +11,7 @@
     'Multiplexer': Multiplexer,
     'Demultiplexer': Demultiplexer
   };
-  if (typeof define === 'function' && define.amd) {
+  if (typeof define === 'function' && define['amd']) {
     define(function(){
       return to_export;
     });

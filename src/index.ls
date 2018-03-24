@@ -8,7 +8,7 @@ to_export	=
 	'Multiplexer'	: Multiplexer
 	'Demultiplexer'	: Demultiplexer
 
-if typeof define == 'function' && define.amd
+if typeof define == 'function' && define['amd']
 	# AMD
 	define(-> to_export)
 else if typeof exports == 'object'
