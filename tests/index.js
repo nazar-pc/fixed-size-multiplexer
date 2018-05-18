@@ -34,7 +34,7 @@
       demux.feed(mux.get_block());
     }
     block = mux.get_block();
-    t.equal(new Buffer(block_size).toString('hex'), Buffer.from(block).toString('hex'), 'Multiplexer returns empty blocks if no data present');
+    t.equal(Buffer.alloc(block_size).toString('hex'), Buffer.from(block).toString('hex'), 'Multiplexer returns empty blocks if no data present');
     demux.feed(block);
     mux.feed(data3);
     while (mux.have_more_blocks()) {
